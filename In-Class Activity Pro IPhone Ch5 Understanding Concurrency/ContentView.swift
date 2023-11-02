@@ -16,13 +16,14 @@ struct ContentView: View {
         VStack {
             Button("Click Me") {
                 let startTime = NSDate()
-                let fetchedData = fetchSomethingFromServer()
-                let processedData = processData(fetchedData)
-                let firstResult = calculateFirstResult(processedData)
-                let secondResult = self.calculateSecondResult(processedData)
-                let resultsSummary =
-                "First: [\(firstResult)]\nSecond: [\(secondResult)]"
-                results = resultsSummary
+                callFunction()
+                //let fetchedData = fetchSomethingFromServer()
+                //let processedData = processData(fetchedData)
+                //let firstResult = calculateFirstResult(processedData)
+                //let secondResult = self.calculateSecondResult(processedData)
+                //let resultsSummary =
+                //"First: [\(firstResult)]\nSecond: [\(secondResult)]"
+                //results = resultsSummary
                 let endTime = NSDate()
                 message = "Completed in \(endTime.timeIntervalSince(startTime as Date)) seconds"
             }
@@ -31,22 +32,37 @@ struct ContentView: View {
             Text("Message = \(message)")
         }
     }
-    func fetchSomethingFromServer() -> String {
+    func fetchSomethingFromServer() async throws -> String {
         Thread.sleep(forTimeInterval: 2)
         return "I enjoy reading"
     }
 
-
-    func processData(_ data: String) -> String {
+    func callFunction() {
+            Task(priority: .high) {
+                do {
+                    let fetchedData = try await fetchSomethingFromServer()
+                    let processedData = try await processData(fetchedData)
+                    let firstResult = try await calculateFirstResult(processedData)
+                    let secondResult = try await self.calculateSecondResult(processedData)
+                    let resultsSummary =
+                    "First: [\(firstResult)]\nSecond: [\(secondResult)]"
+                    results = resultsSummary
+                } catch {
+                    //
+                }
+            }
+        } 
+    
+    func processData(_ data: String) async throws -> String {
         Thread.sleep(forTimeInterval: 2)
         return data.uppercased()
     }
-    func calculateFirstResult(_ data: String) -> String {
+    func calculateFirstResult(_ data: String) async throws -> String {
         Thread.sleep(forTimeInterval: 2)
         let message = "Number of chars: \(String(data).count)"
         return message
     }
-    func calculateSecondResult(_ data: String) -> String {
+    func calculateSecondResult(_ data: String) async throws -> String {
         Thread.sleep(forTimeInterval: 2)
         return data.replacingOccurrences(of: "E", with: "e")
     }
